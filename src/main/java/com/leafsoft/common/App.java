@@ -1,7 +1,7 @@
 package com.leafsoft.common;
 
 import org.hibernate.Session;
-import com.leafsoft.persistence.HibernateUtil;
+import com.leafsoft.persistance.HibernateUtil;
 
 public class App
 {
@@ -13,8 +13,8 @@ public class App
         session.beginTransaction();
         Stock stock = new Stock();
 
-        stock.setStockCode("873334");
-        stock.setStockName("s3ures33hdsa");
+        stock.setStockCode("837334");
+        stock.setStockName("sure3s33hdsa");
 
         session.save(stock);
         session.getTransaction().commit();

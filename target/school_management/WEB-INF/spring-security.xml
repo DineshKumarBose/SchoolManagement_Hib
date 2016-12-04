@@ -1,0 +1,86 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+
+	<http pattern="/images/**" security="none"/>
+	<http pattern="/css/**" security="none"/>
+	<http pattern="/js/**" security="none"/>
+	<http pattern="/favicon.ico" security="none"/>
+	<http pattern="/invaliduser" security="none"/>
+	<http pattern="/logoutsession" security="none"/>
+	<http pattern="/resources/**" security="none"/>
+	<http pattern="/home_resources/**" security="none"/>
+	<http pattern="/app/assets/**" security="none"/>
+	<http pattern="/app/work/**" security="none"/>
+	<http pattern="/app/lte/dist/**" security="none"/>
+	<http pattern="/app/lte/bootstrap/**" security="none"/>
+	<http pattern="/app/lte/plugins/**" security="none"/>
+	
+	<http pattern="/accessdenied" security="none"/>
+	<http auto-config="true" use-expressions="true ">
+		<intercept-url pattern="/logoutsession" access="permitAll" />
+		<intercept-url pattern="/jsp/index.jsp" access="permitAll"/>
+		<intercept-url pattern="/app/login.html" access="isAnonymous()" />
+		<intercept-url pattern="/app/register.html" access="isAnonymous()" />
+		<intercept-url pattern="/app/index.html" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/app/**" access="hasRole('ROLE_ADMIN,ROLE_STAFF,ROLE_PARENT,ROLE_STUDENT')"/>
+		<intercept-url pattern="/lte/*" access="hasRole('ROLE_STAFF,ROLE_ADMIN')"/>
+		<intercept-url pattern="/register" access="hasRole('ROLE_COMMONUSER')"/>
+		<intercept-url pattern="/api/v1/**" access="hasRole('ROLE_STAFF')"/>
+		<intercept-url pattern="/schoolRegister" access="hasRole('ROLE_COMMONUSER')"/>
+		<intercept-url pattern="/dashboard" access="hasRole('ROLE_STAFF')"/>
+		<intercept-url pattern="/loginuser" access="hasRole('ROLE_STAFF')"/>
+		<intercept-url pattern="/login" access="isAnonymous()" />
+		<intercept-url pattern="/welcome" access="isAnonymous()" />
+		<intercept-url pattern="/register" access="isAnonymous()" />
+		<intercept-url pattern="/emailVerification" access="isAnonymous()" />
+		<intercept-url pattern="/forgetPassword" access="isAnonymous()" />
+		<intercept-url pattern="/resetPassword" access="isAnonymous()" />
+		<intercept-url pattern="/loginUsers" access="isAnonymous()" />
+		<intercept-url pattern="/logoutUsers" access="isAnonymous()" />
+		<access-denied-handler error-page="/403" />
+		<session-management>
+    	<concurrency-control session-registry-ref="sessionRegistry"/>
+		</session-management>
+		<session-management>
+    	<concurrency-control max-sessions="10" session-registry-ref="sessionRegistry"/>
+		</session-management>
+		<form-login 
+		    login-page="/app/login.html" 
+		    default-target-url="/app/index.html" 
+			authentication-failure-url="/app/login.html?failure" 
+			login-processing-url="/app/j_spring_security_check.action"
+			username-parameter="username"
+			password-parameter="password" />
+    	<logout logout-success-url="/app/login.html?logout" delete-cookies="JSESSIONID"/>
+	</http>
+		
+	<beans:bean id="sessionRegistry"
+    class="org.springframework.security.core.session.SessionRegistryImpl" />
+	<beans:bean id='bCryptPasswordEncoder' class='org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder'></beans:bean>
+	
+	<!-- Select users and user_roles from database -->
+	<authentication-manager>
+		<authentication-provider>
+		<password-encoder ref="bCryptPasswordEncoder"/>
+			<jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="
+         SELECT USERNAME, PASSWORD, CASE ENABLED WHEN 1 THEN 'true' ELSE 'false' END 'ENABLED'
+         FROM OrgUsers
+         WHERE USERNAME=?;"
+ 
+       authorities-by-username-query="
+        SELECT r.USERNAME, u.ROLENAME
+        FROM OrgUserRoles u, OrgUsers r
+        WHERE u.luid = r.luid
+        AND r.USERNAME=?;"
+ 
+        />
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>
